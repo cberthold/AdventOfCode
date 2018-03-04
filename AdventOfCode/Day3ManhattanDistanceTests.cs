@@ -223,7 +223,7 @@ namespace AdventOfCode
         {
             // assemble
             const int INPUT = 289326;
-            const int EXPECTED = 351;
+            const int EXPECTED = 295229;
 
             var builder = new NeighborValueBuilder();
 

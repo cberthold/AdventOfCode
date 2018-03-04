@@ -590,6 +590,49 @@ jwfm ptjwrbl hhuv uolz adyweh qpj wxyogp igvnojq jmfw pqs fsnirby";
             // assert
             Assert.Equal(EXPECTED, result);
         }
+
+        [Fact]
+        public void Pass_phrase_with_no_anagrams_are_valid()
+        {
+            /*
+             * abcde fghij is a valid passphrase.
+             * abcde xyz ecdab is not valid - the letters from the third word can be rearranged to form the first word.
+             * a ab abc abd abf abj is a valid passphrase, because all letters need to be used when forming another word.
+             * iiii oiii ooii oooi oooo is valid.
+             * oiii ioii iioi iiio is not valid - any of these words can be rearranged to form any other word.
+            */
+
+            // assemble
+            Dictionary<string, bool> phrases = new Dictionary<string, bool>
+            {
+                { "abcde fghij",true },
+                { "abcde xyz ecdab",false },
+                { "a ab abc abd abf abj",true },
+                { "iiii oiii ooii oooi oooo",true },
+                { "oiii ioii iioi iiio",false },
+            };
+
+            var list = new List<string>(phrases.Keys);
+            var verifies = new List<Action<string>>(phrases.Count);
+            
+            var checker = new PassPhraseAntiAnagramChecker();
+
+            // apply
+            foreach (var key in list)
+            {
+                Action<string> action = (phrase) =>
+                {
+                    var expected = phrases[phrase];
+                    var result = checker.IsValid(phrase);
+                    Assert.Equal(expected, result);
+                };
+                verifies.Add(action);
+            }
+
+
+            // assert
+            Assert.Collection(list, verifies.ToArray());
+        }
     }
 
     public class PassPhraseChecker
@@ -599,6 +642,21 @@ jwfm ptjwrbl hhuv uolz adyweh qpj wxyogp igvnojq jmfw pqs fsnirby";
             string[] phrases = phaseList.Split(" ", StringSplitOptions.RemoveEmptyEntries);
             var anyDuplicates = (from p in phrases
                                  group p by p into grp
+                                 where grp.Count() > 1
+                                 select grp).Any();
+            var isValid = !anyDuplicates;
+            return isValid;
+        }
+    }
+
+    public class PassPhraseAntiAnagramChecker
+    {
+        public bool IsValid(string phaseList)
+        {
+            string[] phrases = phaseList.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+            var anyDuplicates = (from p in phrases
+                                 let sortedP = new string(p.ToCharArray().OrderBy(a => a).ToArray())
+                                 group sortedP by sortedP into grp
                                  where grp.Count() > 1
                                  select grp).Any();
             var isValid = !anyDuplicates;
