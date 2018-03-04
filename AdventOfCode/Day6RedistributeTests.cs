@@ -9,7 +9,7 @@ namespace AdventOfCode
     public class Day6RedistributeTests
     {
         [Fact]
-        public void t()
+        public void given_input_should_stop_after_14029_cycles()
         {
             var bank = new MemoryBankDistribution();
 
@@ -20,12 +20,39 @@ namespace AdventOfCode
 
             Assert.Equal(EXPECTED, result);
         }
+
+        [Fact]
+        public void given_input_should_stop_after_14029_cycles_when_looking_for_second_cycle()
+        {
+            var bank = new MemoryBankDistribution(2);
+
+            var input = new int[] { 10, 3, 15, 10, 5, 15, 5, 15, 9, 2, 5, 8, 5, 2, 3, 6 };
+            const int EXPECTED = 2765;
+
+            var result = bank.FindDuplicateDistribution(input);
+
+            Assert.Equal(EXPECTED, result);
+        }
+
         [Fact]
         public void Given_0270_find_duplicate_should_produce_5()
         {
             var bank = new MemoryBankDistribution();
             var input = new int[] { 0, 2, 7, 0 };
             const int EXPECTED = 5;
+
+            var result = bank.FindDuplicateDistribution(input);
+
+            Assert.Equal(EXPECTED, result);
+        }
+
+
+        [Fact]
+        public void Given_0270_find_duplicate_should_produce_4_on_second_round()
+        {
+            var bank = new MemoryBankDistribution(2);
+            var input = new int[] { 0, 2, 7, 0 };
+            const int EXPECTED = 4;
 
             var result = bank.FindDuplicateDistribution(input);
 
@@ -104,6 +131,18 @@ namespace AdventOfCode
 
         public class MemoryBankDistribution
         {
+            public MemoryBankDistribution() : this(1)
+            {
+
+            }
+
+            private int stopAfterCount = 1;
+
+            public MemoryBankDistribution(int stopAfterCount)
+            {
+                this.stopAfterCount = stopAfterCount;
+            }
+            
             public void Redistribute(int[] input)
             {
                 var idx = 0;
@@ -144,6 +183,7 @@ namespace AdventOfCode
             {
                 var existingBanks = new List<int[]>();
                 var count = 0;
+                var duplicateCount = 0;
                 var newInput = input.ToArray();
                 existingBanks.Add(input.ToArray());
                 while (true)
@@ -153,7 +193,13 @@ namespace AdventOfCode
                     
                     if (existingBanks.Any(a => IsArrayEqual(a, newInput)))
                     {
-                        return count;
+                        duplicateCount++;
+                        if(duplicateCount == stopAfterCount)
+                        {
+                            return count;
+                        }
+                        count = 0;
+                        existingBanks.Clear();
                     }
                     existingBanks.Add(newInput.ToArray());
                 }
