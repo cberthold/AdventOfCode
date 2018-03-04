@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using AdventOfCode.Utils;
 using Xunit;
 
 namespace AdventOfCode
@@ -182,6 +184,155 @@ namespace AdventOfCode
 
             // assert
             Assert.Equal(EXPECTED, arraySize);
+        }
+
+        [Fact]
+        public void Next_neighbor_value_after_5_should_be_10()
+        {
+            // assemble
+            const int INPUT = 5;
+            const int EXPECTED = 10;
+
+            var builder = new NeighborValueBuilder();
+
+            // apply
+            var arraySize = builder.BuildToFirstValueAfter(INPUT);
+
+            // assert
+            Assert.Equal(EXPECTED, arraySize);
+        }
+
+        [Fact]
+        public void Next_neighbor_value_after_330_should_be_351()
+        {
+            // assemble
+            const int INPUT = 330;
+            const int EXPECTED = 351;
+
+            var builder = new NeighborValueBuilder();
+
+            // apply
+            var arraySize = builder.BuildToFirstValueAfter(INPUT);
+
+            // assert
+            Assert.Equal(EXPECTED, arraySize);
+        }
+
+        [Fact]
+        public void Next_neighbor_value_after_289326_should_be_295229()
+        {
+            // assemble
+            const int INPUT = 289326;
+            const int EXPECTED = 351;
+
+            var builder = new NeighborValueBuilder();
+
+            // apply
+            var arraySize = builder.BuildToFirstValueAfter(INPUT);
+
+            // assert
+            Assert.Equal(EXPECTED, arraySize);
+        }
+
+    }
+
+    public class NeighborValueBuilder
+    {
+        public int BuildToFirstValueAfter(int input)
+        {
+            int round = 0;
+            int increment = 1;
+            int incrementRemaining = 1;
+            int direction = 1;
+            var previousCell = new Cell(0, 0, 1);
+            var cells = new List<Cell>(500)
+            {
+                previousCell,
+            };
+
+            while (true)
+            {
+                int addX = 0;
+                int addY = 0;
+                switch (direction)
+                {
+                    // right
+                    case 1:
+                        addX = 1;
+                        addY = 0;
+                        break;
+                    // up
+                    case 2:
+                        addX = 0;
+                        addY = 1;
+                        break;
+                    // left
+                    case 3:
+                        addX = -1;
+                        addY = 0;
+                        break;
+                    // down
+                    case 4:
+                        addX = 0;
+                        addY = -1;
+                        break;
+                }
+
+                var newX = previousCell.X + addX;
+                var newY = previousCell.Y + addY;
+                var minX = newX - 1;
+                var maxX = newX + 1;
+                var minY = newY - 1;
+                var maxY = newY + 1;
+
+                var newValue = (from c in cells
+                                where
+                                    c.X >= minX && c.X <= maxX &&
+                                    c.Y >= minY && c.Y <= maxY
+                                select c.Value).Sum();
+
+                if (newValue > input)
+                {
+                    return newValue;
+                }
+
+                previousCell = new Cell(newX, newY, newValue);
+                cells.Add(previousCell);
+
+                incrementRemaining--;
+
+                if (incrementRemaining == 0)
+                {
+                    direction++;
+                    if (direction > 4)
+                    {
+                        direction = 1;
+                    }
+                    round++;
+
+                    if (round == 2)
+                    {
+                        round = 0;
+                        increment++;
+                    }
+                    incrementRemaining = increment;
+                }
+
+            }
+        }
+
+        public struct Cell
+        {
+            public int X { get; }
+            public int Y { get; }
+            public int Value { get; }
+
+            public Cell(int x, int y, int value)
+            {
+                X = x;
+                Y = y;
+                Value = value;
+            }
         }
 
     }
